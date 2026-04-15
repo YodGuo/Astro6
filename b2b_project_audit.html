@@ -231,15 +231,16 @@ const issues = [
   },
   {
     id: 4,
-    severity: 'high',
-    category: '安全',
-    title: 'env.d.ts 保留了已删除的 R2 Secret 类型声明',
-    body: `<p>v1.7.6 删除了 R2 存储模块（<code>src/lib/storage/r2.ts</code>），但 <code>env.d.ts</code> 的 <code>Env</code> 接口仍声明了四个已无实际用途的 secret：</p>
+    severity: 'improvement',
+    category: '信息性/待确认',
+    title: 'env.d.ts 中 R2 Secret 类型声明需按业务规划确认后再处理',
+    body: `<p><code>CHANGELOG.md</code> 的 v1.7.5 / v1.7.6 记录的是“询价上传下线”，该结论只覆盖询价链路，不等价于“全站永久不再使用 R2 上传能力”。</p>
+<p>若 CMS/后台上传（照片、PDF 等）仍规划使用 R2，则以下环境变量和类型声明可以保留，不应作为阻断项强制清理：</p>
 <div class="code-block">R2_ACCESS_KEY_ID: string;
 R2_SECRET_ACCESS_KEY: string;
 R2_ACCOUNT_ID: string;
 R2_BUCKET: string;</div>
-<p>这会让维护者误以为这些 secret 仍被使用，在 Cloudflare 后台继续配置并保留它们，增加不必要的攻击面。删掉即可。</p>`
+<p>仅在确认业务已永久停用 R2 上传后，再同步删除 <code>env.d.ts</code> 声明与 Cloudflare Secret，避免误导执行清理。</p>`
   },
   {
     id: 5,
@@ -353,14 +354,17 @@ function saveDone() {
 }
 
 function updateStats() {
-  const visible = issues.filter(i => activeFilter === 'all' || i.severity === activeFilter);
+  const totalIssues = issues.length;
+  const doneCount = issues.filter(i => doneSet.has(i.id)).length;
+
   document.getElementById('cnt-critical').textContent = issues.filter(i => i.severity === 'critical' && !doneSet.has(i.id)).length;
   document.getElementById('cnt-high').textContent = issues.filter(i => i.severity === 'high' && !doneSet.has(i.id)).length;
-  document.getElementById('cnt-medium').textContent = issues.filter(i => (i.severity === 'medium' || i.severity === 'improvement') && !doneSet.has(i.id)).length;
-  document.getElementById('cnt-done').textContent = doneSet.size;
-  const pct = Math.round(doneSet.size / issues.length * 100);
+  document.getElementById('cnt-medium').textContent = issues.filter(i => i.severity === 'medium' && !doneSet.has(i.id)).length;
+  document.getElementById('cnt-done').textContent = doneCount;
+
+  const pct = totalIssues === 0 ? 100 : Math.round(doneCount / totalIssues * 100);
   document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-text').textContent = doneSet.size + ' / ' + issues.length;
+  document.getElementById('progress-text').textContent = doneCount + ' / ' + totalIssues;
 }
 
 function renderIssues() {
