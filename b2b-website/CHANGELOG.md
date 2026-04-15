@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.6] - 2026-04-15 07:59
+
+### Fixed
+- **依赖冲突解决**: 使用 npm install --legacy-peer-deps 解决 zod 版本冲突问题，确保项目能够正常构建
+
 ## [1.8.5] - 2026-04-15 07:54
 
 ### Fixed
