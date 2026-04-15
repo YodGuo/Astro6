@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.7] - 2026-04-15 08:19
+
+### Tested
+- **评论限流机制测试**: 验证了评论限流机制的实现，包括随机 jitter delay 的添加，减少了并发请求的竞态条件
+- **Google Fonts 加载优化**: 验证了 Google Fonts 的异步加载优化，使用 media="print" onload="this.media='all'" 减少首屏渲染阻塞
+
 ## [1.8.6] - 2026-04-15 07:59
 
 ### Fixed
