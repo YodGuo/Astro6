@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.8] - 2026-04-15 09:21
+
+### Tested
+- **Google Fonts 加载优化性能测试**: 验证了 Google Fonts 的异步加载优化实现
+  - 使用 `media="print" onload="this.media='all'"` 实现字体异步加载
+  - 添加了 `<noscript>` 回退方案，确保在禁用 JavaScript 的情况下也能加载字体
+  - 优化后字体加载不会阻塞首屏渲染，提升页面加载性能
+
 ## [1.8.7] - 2026-04-15 08:19
 
 ### Tested
