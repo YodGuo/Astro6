@@ -1,0 +1,422 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.wrap { padding: 1rem 0 2rem; }
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 0.85rem 1rem;
+  text-align: center;
+}
+.stat-num { font-size: 26px; font-weight: 500; line-height: 1.1; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+.num-red { color: #E24B4A; }
+.num-amber { color: #BA7517; }
+.num-blue { color: #185FA5; }
+.num-green { color: #3B6D11; }
+
+.filters {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem;
+}
+.filter-btn {
+  font-size: 13px; padding: 5px 14px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover { background: var(--color-background-secondary); }
+.filter-btn.active {
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-primary);
+  font-weight: 500;
+}
+
+.issue-list { display: flex; flex-direction: column; gap: 8px; }
+
+.issue-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.issue-card:hover { border-color: var(--color-border-secondary); }
+.issue-card.done { opacity: 0.5; }
+.issue-card.done .issue-title { text-decoration: line-through; }
+
+.issue-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0.85rem 1rem; cursor: pointer; user-select: none;
+}
+
+.checkbox {
+  width: 18px; height: 18px; min-width: 18px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+  background: transparent;
+}
+.checkbox.checked {
+  background: #3B6D11;
+  border-color: #3B6D11;
+}
+.checkbox.checked::after {
+  content: '';
+  width: 10px; height: 6px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) translateY(-1px);
+  display: block;
+}
+
+.badge {
+  font-size: 11px; font-weight: 500;
+  padding: 3px 8px; border-radius: 999px;
+  white-space: nowrap;
+}
+.badge-critical { background: #FCEBEB; color: #A32D2D; }
+.badge-high { background: #FAEEDA; color: #854F0B; }
+.badge-medium { background: #E6F1FB; color: #185FA5; }
+.badge-improvement { background: #EAF3DE; color: #3B6D11; }
+.badge-astro6 { background: #EEEDFE; color: #3C3489; }
+
+.cat-badge {
+  font-size: 11px; color: var(--color-text-tertiary);
+  border: 0.5px solid var(--color-border-tertiary);
+  padding: 2px 7px; border-radius: 999px;
+}
+
+.issue-title {
+  font-size: 14px; font-weight: 500;
+  color: var(--color-text-primary); flex: 1;
+  line-height: 1.35;
+}
+
+.expand-icon {
+  font-size: 12px; color: var(--color-text-tertiary);
+  transition: transform 0.2s; min-width: 12px;
+}
+.expand-icon.open { transform: rotate(180deg); }
+
+.issue-body {
+  display: none; padding: 0 1rem 0.85rem 1rem;
+  border-top: 0.5px solid var(--color-border-tertiary);
+  margin-top: 0; padding-top: 0.75rem;
+}
+.issue-body.open { display: block; }
+
+.issue-body p {
+  font-size: 13px; color: var(--color-text-secondary);
+  line-height: 1.65; margin-bottom: 0.6rem;
+}
+.issue-body p:last-child { margin-bottom: 0; }
+
+.code-block {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  margin: 0.5rem 0;
+  white-space: pre;
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.divider { font-size: 12px; color: var(--color-text-tertiary); margin: 0.5rem 0 0.25rem; font-weight: 500; }
+
+.progress-bar-wrap {
+  background: var(--color-background-secondary);
+  border-radius: 999px; height: 6px; margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: #3B6D11;
+  border-radius: 999px; transition: width 0.4s ease;
+}
+.progress-label {
+  font-size: 12px; color: var(--color-text-secondary);
+  margin-bottom: 6px; display: flex; justify-content: space-between;
+}
+</style>
+
+<h2 class="sr-only">B2B website project audit — interactive issue checklist with severity levels and fix guidance</h2>
+
+<div class="wrap">
+  <div class="summary-grid">
+    <div class="stat-card"><div class="stat-num num-red" id="cnt-critical">0</div><div class="stat-label">Critical</div></div>
+    <div class="stat-card"><div class="stat-num num-amber" id="cnt-high">0</div><div class="stat-label">High</div></div>
+    <div class="stat-card"><div class="stat-num num-blue" id="cnt-medium">0</div><div class="stat-label">Medium</div></div>
+    <div class="stat-card"><div class="stat-num num-green" id="cnt-done">0</div><div class="stat-label">Done</div></div>
+  </div>
+
+  <div class="progress-label">
+    <span>修复进度</span>
+    <span id="progress-text">0 / 11</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="critical">Critical</button>
+    <button class="filter-btn" data-filter="high">High</button>
+    <button class="filter-btn" data-filter="medium">Medium</button>
+    <button class="filter-btn" data-filter="improvement">改进项</button>
+    <button class="filter-btn" data-filter="astro6">Astro 6</button>
+  </div>
+
+  <div class="issue-list" id="issue-list"></div>
+</div>
+
+<script>
+const issues = [
+  {
+    id: 1,
+    severity: 'critical',
+    category: '数据库',
+    title: 'migration 003 未加入 db:migrate 脚本',
+    body: `<p><code>package.json</code> 的 <code>db:migrate</code> 和 <code>db:migrate:remote</code> 脚本只执行了 001 和 002，漏掉了 <code>003_comment_slug.sql</code>。</p>
+<p>新环境部署时 <code>comments</code> 表不会有 <code>news_slug</code> 列，所有评论写入和查询都会报 <strong>SQL 错误</strong>，导致评论功能完全不可用。</p>
+<p class="divider">修复方式</p>
+<div class="code-block">"db:migrate": "wrangler d1 execute b2b-db --local --file=./schema/migrations/001_initial.sql && wrangler d1 execute b2b-db --local --file=./schema/migrations/002_better_auth.sql && wrangler d1 execute b2b-db --local --file=./schema/migrations/003_comment_slug.sql",
+"db:migrate:remote": "同上，去掉 --local"</div>`
+  },
+  {
+    id: 2,
+    severity: 'high',
+    category: '代码一致性',
+    title: 'admin/index.astro 混用 Astro.locals 和裸 locals',
+    body: `<p>第 15 行用 <code>Astro.locals.runtime?.env</code> 赋值给 <code>env</code>，但第 46、49-52、62、80-89 行又直接用裸 <code>locals.runtime</code>（未加 <code>Astro.</code>前缀）。</p>
+<p>在 Astro 5 frontmatter 中两者都能工作，但这是一个不一致的写法。升级 Astro 6 时 <code>locals.runtime</code> 模式会被移除，混用写法会让迁移时漏掉某些调用点。</p>
+<p class="divider">修复方式</p>
+<div class="code-block">统一改为 Astro.locals.runtime（或迁移 Astro 6 后改为 runtime 直接访问）
+搜索并替换全文件中的 locals.runtime → Astro.locals.runtime</div>`
+  },
+  {
+    id: 3,
+    severity: 'high',
+    category: 'SEO',
+    title: 'index.astro JSON-LD 硬编码，未从 settings 读取',
+    body: `<p><code>index.astro</code> 中 Organization JSON-LD 的 <code>name</code>、<code>description</code>、<code>telephone</code>、<code>addressLocality</code> 都是硬编码占位符，没有使用已经 <code>await getSettings()</code> 拿到的 <code>settings</code> 对象。</p>
+<p>这会导致搜索引擎索引到错误的公司信息，影响品牌 SEO。</p>
+<p class="divider">修复方式</p>
+<div class="code-block">const orgJsonLd = {
+  "@type": "Organization",
+  "name": settings.companyName,           // 之前是 "Company"
+  "description": settings.siteDescription,
+  "telephone": settings.phone,            // 之前是 "+86-400-XXX-XXXX"
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": settings.address,
+  },
+};</div>`
+  },
+  {
+    id: 4,
+    severity: 'high',
+    category: '安全',
+    title: 'env.d.ts 保留了已删除的 R2 Secret 类型声明',
+    body: `<p>v1.7.6 删除了 R2 存储模块（<code>src/lib/storage/r2.ts</code>），但 <code>env.d.ts</code> 的 <code>Env</code> 接口仍声明了四个已无实际用途的 secret：</p>
+<div class="code-block">R2_ACCESS_KEY_ID: string;
+R2_SECRET_ACCESS_KEY: string;
+R2_ACCOUNT_ID: string;
+R2_BUCKET: string;</div>
+<p>这会让维护者误以为这些 secret 仍被使用，在 Cloudflare 后台继续配置并保留它们，增加不必要的攻击面。删掉即可。</p>`
+  },
+  {
+    id: 5,
+    severity: 'medium',
+    category: '安全',
+    title: '评论限流存在竞态条件（Race Condition）',
+    body: `<p><code>comment.ts</code> 的限流实现是先 <code>KV.get(key)</code> 读计数，再 <code>KV.put(key, count+1)</code> 写回，两步操作之间没有原子性保障。</p>
+<p>在并发请求下，多个请求可能同时读到相同的计数值，从而绕过限流阈值。对于低流量的 B2B 网站日常影响不大，但在针对性的评论刷屏攻击下会失效。</p>
+<p class="divider">改进方向</p>
+<p>短期：接受这个限制（实际 B2B 场景并发极低），但可在 Turnstile 验证通过后加一个随机 jitter delay 降低并发概率。</p>
+<p>长期：升级 Astro 6 后，考虑改用 Cloudflare Durable Objects 实现原子计数器，或用 Cloudflare Rate Limiting（WAF 层面）替代应用层限流。</p>`
+  },
+  {
+    id: 6,
+    severity: 'medium',
+    category: '性能',
+    title: 'Google Fonts 外部请求阻塞首屏渲染',
+    body: `<p><code>BaseLayout.astro</code> 的 <code>&lt;head&gt;</code> 里直接加载了两个 Google Fonts CSS（Inter + Plus Jakarta Sans），这是渲染阻塞请求。用户每次加载页面都需要先等待 Google 服务器响应。</p>
+<p>虽然有 <code>rel="preconnect"</code>，但字体 CSS 本身仍会阻塞渲染，且对中国大陆用户访问 <code>fonts.googleapis.com</code> 本就不稳定。</p>
+<p class="divider">推荐方案</p>
+<p>用 <code>fontsource</code> 包把字体文件本地化（npm install @fontsource/inter），或在 <code>font-face</code> 声明里加 <code>font-display: swap</code>，并把字体文件放到 R2/本地 public 目录。</p>`
+  },
+  {
+    id: 7,
+    severity: 'medium',
+    category: '安全',
+    title: 'Keystatic/Admin 路由缺少 WAF 层 IP 白名单',
+    body: `<p>后台访问目前只依赖域名守卫（<code>cms.xxxx.com</code>）和 Better Auth 登录校验，没有网络层的访问限制。</p>
+<p>如果攻击者知道 CMS 域名，仍可以对登录接口做暴力破解（Better Auth 虽然有 Session 机制但没有内置登录失败锁定）。</p>
+<p class="divider">推荐方案</p>
+<p>在 Cloudflare Dashboard → Security → WAF 中为 <code>cms.xxxx.com/admin/*</code> 和 <code>cms.xxxx.com/keystatic/*</code> 添加 IP 白名单规则（Access Policy），仅允许公司固定 IP 或通过 Cloudflare Access 做零信任认证。</p>`
+  },
+  {
+    id: 8,
+    severity: 'improvement',
+    category: '代码质量',
+    title: 'BaseLayout Props 接口过于宽松',
+    body: `<p><code>BaseLayout.astro</code> 的 <code>Props.settings</code> 是一个手写的局部接口（只有 8 个字段），与 <code>lib/settings.ts</code> 里的完整 <code>SiteSettings</code> 接口不同步。</p>
+<p>如果 <code>SiteSettings</code> 新增字段（比如 <code>twitterHandle</code>），需要同时在两处更新，容易遗漏。</p>
+<p class="divider">改进方式</p>
+<div class="code-block">// BaseLayout.astro
+import type { SiteSettings } from '../lib/settings';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  settings?: Partial&lt;SiteSettings&gt;;
+}</div>`
+  },
+  {
+    id: 9,
+    severity: 'improvement',
+    category: '可维护性',
+    title: 'wrangler.jsonc 中占位符域名未统一管理',
+    body: `<p><code>wrangler.jsonc</code> 里有多处 <code>xxxx.com</code>、<code>media.xxxx.com</code>、<code>cms.xxxx.com</code> 的占位符，分散在 <code>vars</code>、<code>routes</code>、<code>r2_buckets</code> 等多处。</p>
+<p>新开发者克隆项目时需要全局搜索替换，容易遗漏。</p>
+<p class="divider">改进方式</p>
+<p>在 README 里明确列出所有需要替换的占位符，或考虑使用 <code>.dev.vars</code> + <code>wrangler.jsonc</code> 变量引用的方式统一管理域名配置。</p>`
+  },
+  {
+    id: 10,
+    severity: 'astro6',
+    category: 'Astro 6',
+    title: 'Astro.locals.runtime 需要全面迁移',
+    body: `<p>Astro 6 的 Cloudflare 适配器移除了 <code>Astro.locals.runtime</code>，改为直接的平台 API 访问。</p>
+<p>项目中约 8-10 个文件需要修改：</p>
+<div class="code-block">影响文件：
+- src/pages/admin/index.astro
+- src/pages/admin/login.astro
+- src/pages/news/[slug].astro
+- src/pages/api/auth/[...all].ts
+- src/pages/api/cron/backup.ts
+- src/pages/api/health.ts
+- src/actions/inquiry.ts
+- src/actions/comment.ts
+- src/env.d.ts（App.Locals 类型声明）</div>
+<p>迁移模式（参考 Astro 6 Cloudflare 适配器文档）：</p>
+<div class="code-block">// v5（当前）
+const env = Astro.locals.runtime.env;
+const db = env.DB;
+
+// v6（迁移后）
+import { getRuntime } from '@astrojs/cloudflare/runtime';
+const runtime = getRuntime(Astro.request);
+const db = runtime.env.DB;</div>`
+  },
+  {
+    id: 11,
+    severity: 'astro6',
+    category: 'Astro 6',
+    title: 'Zod 3 → Zod 4 迁移',
+    body: `<p>Astro 6 将 Zod 内部升级至 v4，不再支持 Zod 3。项目 <code>package.json</code> 声明的是 <code>zod: "^3.23.0"</code>。</p>
+<p>Zod 4 大多数基础用法（<code>z.string()</code>、<code>z.object()</code>、<code>.optional()</code>、<code>.min()</code>）保持兼容，但部分 API 有变化：</p>
+<div class="code-block">// 需要检查的变化点：
+// 1. z.ZodError 的 .flatten() 输出格式微调
+// 2. .transform() + .refine() 链式调用顺序
+// 3. astro:schema 中的 z 导入自动升级（无需手动处理）
+
+// 快速检查命令（升级后运行）：
+npx astro check</div>
+<p>建议使用官方提供的 community codemod 辅助迁移，再跑一遍 TypeScript 类型检查确认无报错。</p>`
+  },
+];
+
+let activeFilter = 'all';
+let doneSet = new Set(JSON.parse(localStorage.getItem('b2b_audit_done') || '[]'));
+
+function saveDone() {
+  try { localStorage.setItem('b2b_audit_done', JSON.stringify([...doneSet])); } catch(e) {}
+}
+
+function updateStats() {
+  const visible = issues.filter(i => activeFilter === 'all' || i.severity === activeFilter);
+  document.getElementById('cnt-critical').textContent = issues.filter(i => i.severity === 'critical' && !doneSet.has(i.id)).length;
+  document.getElementById('cnt-high').textContent = issues.filter(i => i.severity === 'high' && !doneSet.has(i.id)).length;
+  document.getElementById('cnt-medium').textContent = issues.filter(i => (i.severity === 'medium' || i.severity === 'improvement') && !doneSet.has(i.id)).length;
+  document.getElementById('cnt-done').textContent = doneSet.size;
+  const pct = Math.round(doneSet.size / issues.length * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = doneSet.size + ' / ' + issues.length;
+}
+
+function renderIssues() {
+  const list = document.getElementById('issue-list');
+  const filtered = activeFilter === 'all' ? issues : issues.filter(i => i.severity === activeFilter);
+
+  list.innerHTML = filtered.map(issue => {
+    const done = doneSet.has(issue.id);
+    const sevClass = `badge-${issue.severity}`;
+    const sevLabel = {critical:'Critical',high:'High',medium:'Medium',improvement:'改进',astro6:'Astro 6'}[issue.severity];
+    return `<div class="issue-card ${done ? 'done' : ''}" data-id="${issue.id}">
+      <div class="issue-header" onclick="toggleExpand(${issue.id}, event)">
+        <div class="checkbox ${done ? 'checked' : ''}" onclick="toggleDone(${issue.id}, event)"></div>
+        <span class="badge ${sevClass}">${sevLabel}</span>
+        <span class="cat-badge">${issue.category}</span>
+        <span class="issue-title">${issue.title}</span>
+        <span class="expand-icon" id="icon-${issue.id}">▼</span>
+      </div>
+      <div class="issue-body" id="body-${issue.id}">
+        ${issue.body}
+      </div>
+    </div>`;
+  }).join('');
+
+  updateStats();
+}
+
+window.toggleDone = function(id, e) {
+  e.stopPropagation();
+  if (doneSet.has(id)) doneSet.delete(id);
+  else doneSet.add(id);
+  saveDone();
+  renderIssues();
+};
+
+window.toggleExpand = function(id, e) {
+  const body = document.getElementById('body-' + id);
+  const icon = document.getElementById('icon-' + id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.issue-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.expand-icon').forEach(i => i.classList.remove('open'));
+  if (!isOpen) {
+    body.classList.add('open');
+    icon.classList.add('open');
+  }
+};
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderIssues();
+  });
+});
+
+renderIssues();
+</script>
